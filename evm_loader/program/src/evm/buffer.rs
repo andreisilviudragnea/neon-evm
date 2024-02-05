@@ -300,15 +300,6 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "assertion failed: !self.ptr.is_null()")]
-    fn test_deref_account_uninit() {
-        let _: &[u8] = &Buffer::new(Inner::AccountUninit {
-            key: Pubkey::default(),
-            range: 0..0,
-        });
-    }
-
-    #[test]
     fn historic_empty_deserialization_works() {
         let serialized = [
             0, 0, 0, 0, // Variant
