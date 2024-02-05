@@ -1,0 +1,34 @@
+on: [ push ]
+
+name: CI
+
+defaults:
+  run:
+    working-directory: ./evm_loader
+
+env:
+  NEON_REVISION: 72f95822fe1388adf0d8cbd96c0261188c0510dd
+
+jobs:
+  build_and_test:
+    name: Rust project
+    runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: "-D warnings"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.69.0
+      - name: Install libudev
+        run: sudo apt-get install -y libudev-dev # needed by hidapi crate
+      - name: Install rustfmt clippy
+        run: rustup component add rustfmt clippy
+#      - name: Cache Dependencies
+#        uses: Swatinem/rust-cache@v2.7.3
+      - name: cargo fmt --all --check
+        run: cargo fmt --all --check
+      - name: cargo clippy --release --all-features
+        run: cargo clippy --release --all-features
+      - name: cargo build --release --all-features
+        run: cargo build --release --all-features
+      - name: cargo test --release --all-features
+        run: cargo test --release --all-features
