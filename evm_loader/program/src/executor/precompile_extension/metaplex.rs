@@ -12,8 +12,8 @@ use mpl_token_metadata::{
 };
 use solana_program::pubkey::Pubkey;
 
+use crate::executor::precompile_extension::spl_token::contract_pubkey_seeds;
 use crate::{
-    account::ACCOUNT_SEED_VERSION,
     account_storage::AccountStorage,
     error::{Error, Result},
     executor::ExecutorState,
@@ -189,11 +189,7 @@ impl<B: AccountStorage> ExecutorState<'_, B> {
         let signer = context.caller;
         let (signer_pubkey, bump_seed) = self.backend.contract_pubkey(signer);
 
-        let seeds = vec![
-            vec![ACCOUNT_SEED_VERSION],
-            signer.as_bytes().to_vec(),
-            vec![bump_seed],
-        ];
+        let seeds = contract_pubkey_seeds(signer, bump_seed);
 
         let (metadata_pubkey, _) = Metadata::find_pda(&mint);
 
@@ -241,11 +237,7 @@ impl<B: AccountStorage> ExecutorState<'_, B> {
         let signer = context.caller;
         let (signer_pubkey, bump_seed) = self.backend.contract_pubkey(signer);
 
-        let seeds = vec![
-            vec![ACCOUNT_SEED_VERSION],
-            signer.as_bytes().to_vec(),
-            vec![bump_seed],
-        ];
+        let seeds = contract_pubkey_seeds(signer, bump_seed);
 
         let (metadata_pubkey, _) = Metadata::find_pda(&mint);
         let (edition_pubkey, _) = MasterEdition::find_pda(&mint);
