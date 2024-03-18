@@ -291,33 +291,27 @@ impl<B: AccountStorage> ExecutorState<'_, B> {
         freeze_authority: Option<Pubkey>,
     ) -> Result<Vec<u8>> {
         let signer = context.caller;
-        let (signer_pubkey, _) = self.backend.contract_pubkey(signer);
 
-        let (mint_key, bump_seed) = Pubkey::find_program_address(
-            &[
-                &[ACCOUNT_SEED_VERSION],
-                b"ContractData",
-                signer.as_bytes(),
-                seed,
-            ],
-            self.backend.program_id(),
-        );
+        let seeds: &[&[u8]] = &[
+            &[ACCOUNT_SEED_VERSION],
+            b"ContractData",
+            signer.as_bytes(),
+            seed,
+        ];
+
+        let (mint_key, bump_seed) = Pubkey::find_program_address(seeds, self.backend.program_id());
 
         let account = self.external_account(mint_key).await?;
         if !system_program::check_id(&account.owner) {
             return Err(Error::AccountInvalidOwner(mint_key, system_program::ID));
         }
 
-        let seeds: Vec<Vec<u8>> = vec![
-            vec![ACCOUNT_SEED_VERSION],
-            b"ContractData".to_vec(),
-            signer.as_bytes().to_vec(),
-            seed.to_vec(),
-            vec![bump_seed],
-        ];
+        let mut seeds: Vec<_> = seeds.iter().map(|&seed| seed.to_vec()).collect();
+        seeds.push(vec![bump_seed]);
 
         self.create_account(&account, spl_token::state::Mint::LEN, seeds);
 
+        let (signer_pubkey, _) = self.backend.contract_pubkey(signer);
         let initialize_mint = spl_token::instruction::initialize_mint(
             &spl_token::ID,
             &mint_key,
@@ -339,40 +333,35 @@ impl<B: AccountStorage> ExecutorState<'_, B> {
         owner: Option<Pubkey>,
     ) -> Result<Vec<u8>> {
         let signer = context.caller;
-        let (signer_pubkey, _) = self.backend.contract_pubkey(signer);
 
-        let (account_key, bump_seed) = Pubkey::find_program_address(
-            &[
-                &[ACCOUNT_SEED_VERSION],
-                b"ContractData",
-                signer.as_bytes(),
-                seed,
-            ],
-            self.backend.program_id(),
-        );
+        let seeds: &[&[u8]] = &[
+            &[ACCOUNT_SEED_VERSION],
+            b"ContractData",
+            signer.as_bytes(),
+            seed,
+        ];
+
+        let (account_key, bump_seed) =
+            Pubkey::find_program_address(seeds, self.backend.program_id());
 
         let account = self.external_account(account_key).await?;
         if !system_program::check_id(&account.owner) {
             return Err(Error::AccountInvalidOwner(account_key, system_program::ID));
         }
 
-        let seeds: Vec<Vec<u8>> = vec![
-            vec![ACCOUNT_SEED_VERSION],
-            b"ContractData".to_vec(),
-            signer.as_bytes().to_vec(),
-            seed.to_vec(),
-            vec![bump_seed],
-        ];
+        let mut seeds: Vec<_> = seeds.iter().map(|&seed| seed.to_vec()).collect();
+        seeds.push(vec![bump_seed]);
 
         self.create_account(&account, spl_token::state::Account::LEN, seeds);
 
-        let initialize_mint = spl_token::instruction::initialize_account2(
+        let (signer_pubkey, _) = self.backend.contract_pubkey(signer);
+        let initialize_account2 = spl_token::instruction::initialize_account2(
             &spl_token::ID,
             &account_key,
             &mint,
             &owner.unwrap_or(signer_pubkey),
         )?;
-        self.queue_external_instruction(initialize_mint, vec![], 0);
+        self.queue_external_instruction(initialize_account2, vec![], 0);
 
         Ok(account_key.to_bytes().to_vec())
     }
@@ -627,15 +616,14 @@ impl<B: AccountStorage> ExecutorState<'_, B> {
     fn find_account(&mut self, context: &crate::evm::Context, seed: &[u8]) -> Result<Vec<u8>> {
         let signer = context.caller;
 
-        let (account_key, _) = Pubkey::find_program_address(
-            &[
-                &[ACCOUNT_SEED_VERSION],
-                b"ContractData",
-                signer.as_bytes(),
-                seed,
-            ],
-            self.backend.program_id(),
-        );
+        let seeds: &[&[u8]] = &[
+            &[ACCOUNT_SEED_VERSION],
+            b"ContractData",
+            signer.as_bytes(),
+            seed,
+        ];
+
+        let (account_key, _) = Pubkey::find_program_address(seeds, self.backend.program_id());
 
         Ok(account_key.to_bytes().to_vec())
     }

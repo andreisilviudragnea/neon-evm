@@ -1480,3 +1480,19 @@ impl<B: Database, T: EventListener> Machine<B, T> {
         Ok(Action::Continue)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use solana_program::pubkey::Pubkey;
+    use std::str::FromStr;
+
+    #[test]
+    fn usdc_hex_format() {
+        let pubkey: Pubkey =
+            Pubkey::from_str("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v").unwrap();
+        assert_eq!(
+            hex::encode(pubkey),
+            "c6fa7af3bedbad3a3d65f36aabc97431b1bbe4c2d2f6e0e47ca60203452f5d61"
+        );
+    }
+}
