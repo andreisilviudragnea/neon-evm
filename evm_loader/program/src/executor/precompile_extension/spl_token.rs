@@ -15,6 +15,17 @@ use crate::{
     types::Address,
 };
 
+macro_rules! contract_data_seeds {
+    ($signer:expr, $seed:expr) => {
+        &[
+            &[ACCOUNT_SEED_VERSION],
+            b"ContractData",
+            $signer.as_bytes(),
+            $seed,
+        ]
+    };
+}
+
 // [0xa9, 0xc1, 0x58, 0x06] : "approve(bytes32,bytes32,uint64)",
 // [0xc0, 0x67, 0xee, 0xbb] : "burn(bytes32,bytes32,uint64)",
 // [0x57, 0x82, 0xa0, 0x43] : "closeAccount(bytes32)",
@@ -292,12 +303,7 @@ impl<B: AccountStorage> ExecutorState<'_, B> {
     ) -> Result<Vec<u8>> {
         let signer = context.caller;
 
-        let seeds: &[&[u8]] = &[
-            &[ACCOUNT_SEED_VERSION],
-            b"ContractData",
-            signer.as_bytes(),
-            seed,
-        ];
+        let seeds: &[&[u8]] = contract_data_seeds!(signer, seed);
 
         let (mint_key, bump_seed) = Pubkey::find_program_address(seeds, self.backend.program_id());
 
@@ -334,12 +340,7 @@ impl<B: AccountStorage> ExecutorState<'_, B> {
     ) -> Result<Vec<u8>> {
         let signer = context.caller;
 
-        let seeds: &[&[u8]] = &[
-            &[ACCOUNT_SEED_VERSION],
-            b"ContractData",
-            signer.as_bytes(),
-            seed,
-        ];
+        let seeds: &[&[u8]] = contract_data_seeds!(signer, seed);
 
         let (account_key, bump_seed) =
             Pubkey::find_program_address(seeds, self.backend.program_id());
@@ -616,12 +617,7 @@ impl<B: AccountStorage> ExecutorState<'_, B> {
     fn find_account(&mut self, context: &crate::evm::Context, seed: &[u8]) -> Result<Vec<u8>> {
         let signer = context.caller;
 
-        let seeds: &[&[u8]] = &[
-            &[ACCOUNT_SEED_VERSION],
-            b"ContractData",
-            signer.as_bytes(),
-            seed,
-        ];
+        let seeds: &[&[u8]] = contract_data_seeds!(signer, seed);
 
         let (account_key, _) = Pubkey::find_program_address(seeds, self.backend.program_id());
 
