@@ -1483,6 +1483,7 @@ impl<B: Database, T: EventListener> Machine<B, T> {
 
 #[cfg(test)]
 mod tests {
+    use crate::types::Address;
     use solana_program::pubkey::Pubkey;
     use std::str::FromStr;
 
@@ -1494,5 +1495,91 @@ mod tests {
             hex::encode(pubkey),
             "c6fa7af3bedbad3a3d65f36aabc97431b1bbe4c2d2f6e0e47ca60203452f5d61"
         );
+    }
+
+    #[test]
+    fn test_usdc_erc20() {
+        let pubkey: Pubkey =
+            Pubkey::from_str("8FqvkRVSusXByDSE4bnX9B7yf8XSEjPRxJKJ6t4pzG8j").unwrap();
+        assert_eq!(
+            pubkey.as_ref(),
+            &[
+                107, 207, 66, 235, 174, 206, 136, 28, 160, 225, 57, 32, 147, 87, 253, 70, 27, 217,
+                245, 93, 111, 241, 1, 4, 49, 4, 141, 115, 176, 218, 212, 212
+            ]
+        );
+    }
+
+    #[test]
+    fn test1() {
+        let pubkey: Pubkey =
+            Pubkey::from_str("NeonVMyRX5GbCrsAHnUwx1nYYoJAtskU1bWUo6JGNyG").unwrap();
+        assert_eq!(
+            pubkey.as_ref(),
+            &[
+                5, 139, 241, 240, 171, 140, 117, 8, 209, 78, 254, 87, 193, 94, 134, 178, 44, 248,
+                36, 108, 164, 21, 202, 92, 79, 105, 179, 82, 154, 15, 7, 59
+            ]
+        );
+
+        let pubkey: Pubkey =
+            Pubkey::from_str("eeLSJgWzzxrqKv1UxtRVVH8FX3qCQWUs9QuAjJpETGU").unwrap();
+        assert_eq!(
+            pubkey.as_ref(),
+            &[
+                9, 164, 180, 114, 217, 242, 197, 55, 23, 94, 82, 107, 238, 237, 170, 182, 118, 140,
+                128, 128, 14, 219, 247, 59, 68, 16, 244, 138, 145, 214, 81, 193
+            ]
+        );
+
+        let pubkey: Pubkey =
+            Pubkey::from_str("8FqvkRVSusXByDSE4bnX9B7yf8XSEjPRxJKJ6t4pzG8j").unwrap();
+        assert_eq!(
+            pubkey.as_ref(),
+            &[
+                107, 207, 66, 235, 174, 206, 136, 28, 160, 225, 57, 32, 147, 87, 253, 70, 27, 217,
+                245, 93, 111, 241, 1, 4, 49, 4, 141, 115, 176, 218, 212, 212
+            ]
+        );
+
+        let pubkey: Pubkey =
+            Pubkey::from_str("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA").unwrap();
+        assert_eq!(
+            pubkey.as_ref(),
+            &[
+                6, 221, 246, 225, 215, 101, 161, 147, 217, 203, 225, 70, 206, 235, 121, 172, 28,
+                180, 133, 237, 95, 91, 55, 145, 58, 140, 245, 133, 126, 255, 0, 169
+            ]
+        );
+
+        let x: [i32; 32] = [
+            10, 26, -104, 51, -93, 118, 85, 43, 86, -73, -54, 13, -19, 25, 41, 23, 0, 87, -24, 39,
+            -96, -58, 39, -12, -74, 71, -71, -18, -112, -103, -81, -76,
+        ];
+        let pubkey: Pubkey =
+            Pubkey::try_from(x.into_iter().map(|v| (v + 256) as u8).collect::<Vec<_>>()).unwrap();
+
+        assert_eq!(
+            pubkey.to_string(),
+            "gSbePebfvPy7tRqimPoVecS2UsBvYv46ynrzWocc92s"
+        );
+    }
+
+    #[test]
+    fn test_contract_pubkey_usdc_erc20() {
+        let (pubkey, bump_seed) = Pubkey::find_program_address(
+            &[
+                &[3],
+                &Address::from_hex("0xEA6B04272f9f62F997F666F07D3a974134f7FFb9")
+                    .unwrap()
+                    .0,
+            ],
+            &Pubkey::from_str("NeonVMyRX5GbCrsAHnUwx1nYYoJAtskU1bWUo6JGNyG").unwrap(),
+        );
+        assert_eq!(
+            pubkey.to_string(),
+            "8FqvkRVSusXByDSE4bnX9B7yf8XSEjPRxJKJ6t4pzG8j"
+        );
+        assert_eq!(bump_seed, 255);
     }
 }
