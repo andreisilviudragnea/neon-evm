@@ -1543,12 +1543,12 @@ mod tests {
         );
 
         let pubkey: Pubkey =
-            Pubkey::from_str("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA").unwrap();
+            Pubkey::from_str("53DfF883gyixYNXnM7s5xhdeyV8mVk9T4i2hGV9vG9io").unwrap();
         assert_eq!(
             pubkey.as_ref(),
             &[
-                6, 221, 246, 225, 215, 101, 161, 147, 217, 203, 225, 70, 206, 235, 121, 172, 28,
-                180, 133, 237, 95, 91, 55, 145, 58, 140, 245, 133, 126, 255, 0, 169
+                60, 0, 57, 43, 120, 125, 56, 168, 83, 209, 36, 5, 118, 52, 196, 60, 113, 51, 198,
+                18, 70, 29, 116, 254, 177, 127, 66, 72, 21, 82, 134, 192
             ]
         );
 
