@@ -1484,6 +1484,7 @@ impl<B: Database, T: EventListener> Machine<B, T> {
 #[cfg(test)]
 mod tests {
     use crate::types::Address;
+    use ethnum::U256;
     use solana_program::pubkey::Pubkey;
     use std::str::FromStr;
 
@@ -1581,5 +1582,33 @@ mod tests {
             "8FqvkRVSusXByDSE4bnX9B7yf8XSEjPRxJKJ6t4pzG8j"
         );
         assert_eq!(bump_seed, 255);
+
+        let pubkey = Pubkey::from([
+            163, 75, 217, 177, 32, 150, 141, 228, 71, 250, 65, 55, 155, 23, 201, 59, 43, 54, 32,
+            135, 209, 6, 101, 38, 34, 234, 120, 75, 175, 224, 108, 27,
+        ]);
+        assert_eq!(
+            pubkey.to_string(),
+            "BzSYA4hTLRboBxL1JM8Yizm6fbxCG8nNmrNpFvrvxcVG"
+        );
+
+        let chain_id = U256::from(245022926u64);
+
+        let seeds: &[&[u8]] = &[
+            &[3],
+            &Address::from_hex("0x2948CeE08FF866f94B351E95048BDB64F50C669e")
+                .unwrap()
+                .0,
+            &chain_id.to_be_bytes(),
+        ];
+        let (pubkey, _) = Pubkey::find_program_address(
+            seeds,
+            &Pubkey::from_str("53DfF883gyixYNXnM7s5xhdeyV8mVk9T4i2hGV9vG9io").unwrap(),
+        );
+
+        assert_eq!(
+            pubkey.to_string(),
+            "BzSYA4hTLRboBxL1JM8Yizm6fbxCG8nNmrNpFvrvxcVG"
+        );
     }
 }
