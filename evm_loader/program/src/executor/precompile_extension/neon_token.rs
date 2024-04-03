@@ -6,6 +6,7 @@ use maybe_async::maybe_async;
 use solana_program::{account_info::IntoAccountInfo, program_pack::Pack, pubkey::Pubkey};
 use spl_associated_token_account::get_associated_token_address;
 
+use crate::pda_seeds::{PubkeyExt, AUTHORITY_SEEDS};
 use crate::{
     account::token,
     error::{Error, Result},
@@ -120,7 +121,8 @@ async fn withdraw<State: Database>(
             .await?;
     }
 
-    let (authority, bump_seed) = Pubkey::find_program_address(&[b"Deposit"], state.program_id());
+    let (authority, transfer_seeds) =
+        Pubkey::find_program_address_with_seeds(AUTHORITY_SEEDS, state.program_id());
     let pool = get_associated_token_address(&authority, &mint_address);
 
     let transfer = spl_token::instruction::transfer_checked(
@@ -133,7 +135,6 @@ async fn withdraw<State: Database>(
         spl_amount.as_u64(),
         mint_data.decimals,
     )?;
-    let transfer_seeds = vec![b"Deposit".to_vec(), vec![bump_seed]];
     state
         .queue_external_instruction(transfer, vec![transfer_seeds], 0, true)
         .await?;

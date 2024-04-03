@@ -1,4 +1,5 @@
 #![allow(clippy::unnecessary_wraps)]
+use crate::pda_seeds::contract_account_seeds_bump_seed_vec;
 use std::convert::{Into, TryInto};
 
 use ethnum::U256;
@@ -13,7 +14,6 @@ use mpl_token_metadata::{
 use solana_program::pubkey::Pubkey;
 
 use crate::{
-    account::ACCOUNT_SEED_VERSION,
     error::{Error, Result},
     evm::database::Database,
     types::Address,
@@ -188,12 +188,6 @@ async fn create_metadata<State: Database>(
     let signer = context.caller;
     let (signer_pubkey, bump_seed) = state.contract_pubkey(signer);
 
-    let seeds = vec![
-        vec![ACCOUNT_SEED_VERSION],
-        signer.as_bytes().to_vec(),
-        vec![bump_seed],
-    ];
-
     let (metadata_pubkey, _) = Metadata::find_pda(&mint);
 
     let instruction = CreateMetadataAccountV3Builder::new()
@@ -227,7 +221,12 @@ async fn create_metadata<State: Database>(
 
     let fee = state.rent().minimum_balance(MAX_METADATA_LEN) + CREATE_FEE;
     state
-        .queue_external_instruction(instruction, vec![seeds], fee, true)
+        .queue_external_instruction(
+            instruction,
+            vec![contract_account_seeds_bump_seed_vec(&signer, &[bump_seed])],
+            fee,
+            true,
+        )
         .await?;
 
     Ok(metadata_pubkey.to_bytes().to_vec())
@@ -242,12 +241,6 @@ async fn create_master_edition<State: Database>(
 ) -> Result<Vec<u8>> {
     let signer = context.caller;
     let (signer_pubkey, bump_seed) = state.contract_pubkey(signer);
-
-    let seeds = vec![
-        vec![ACCOUNT_SEED_VERSION],
-        signer.as_bytes().to_vec(),
-        vec![bump_seed],
-    ];
 
     let (metadata_pubkey, _) = Metadata::find_pda(&mint);
     let (edition_pubkey, _) = MasterEdition::find_pda(&mint);
@@ -269,7 +262,12 @@ async fn create_master_edition<State: Database>(
 
     let fee = state.rent().minimum_balance(MAX_MASTER_EDITION_LEN) + CREATE_FEE;
     state
-        .queue_external_instruction(instruction, vec![seeds], fee, true)
+        .queue_external_instruction(
+            instruction,
+            vec![contract_account_seeds_bump_seed_vec(&signer, &[bump_seed])],
+            fee,
+            true,
+        )
         .await?;
 
     Ok(edition_pubkey.to_bytes().to_vec())

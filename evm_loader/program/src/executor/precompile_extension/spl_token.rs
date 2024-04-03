@@ -1,5 +1,6 @@
 use std::convert::{Into, TryInto};
 
+use crate::pda_seeds::transfer_seeds;
 use ethnum::U256;
 use maybe_async::maybe_async;
 use solana_program::{
@@ -7,8 +8,10 @@ use solana_program::{
 };
 
 use super::create_account;
+use crate::pda_seeds::contract_account_seeds_bump_seed_vec;
+use crate::pda_seeds::spl_token_seeds;
+use crate::pda_seeds::PubkeyExt;
 use crate::{
-    account::ACCOUNT_SEED_VERSION,
     error::{Error, Result},
     evm::database::Database,
     types::Address,
@@ -269,13 +272,8 @@ async fn initialize_mint<State: Database>(
     let signer = context.caller;
     let (signer_pubkey, _) = state.contract_pubkey(signer);
 
-    let (mint_key, bump_seed) = Pubkey::find_program_address(
-        &[
-            &[ACCOUNT_SEED_VERSION],
-            b"ContractData",
-            signer.as_bytes(),
-            seed,
-        ],
+    let (mint_key, seeds) = Pubkey::find_program_address_with_seeds(
+        &spl_token_seeds(&signer, seed),
         state.program_id(),
     );
 
@@ -283,14 +281,6 @@ async fn initialize_mint<State: Database>(
     if !system_program::check_id(&account.owner) {
         return Err(Error::AccountInvalidOwner(mint_key, system_program::ID));
     }
-
-    let seeds: Vec<Vec<u8>> = vec![
-        vec![ACCOUNT_SEED_VERSION],
-        b"ContractData".to_vec(),
-        signer.as_bytes().to_vec(),
-        seed.to_vec(),
-        vec![bump_seed],
-    ];
 
     create_account(
         state,
@@ -326,13 +316,8 @@ async fn initialize_account<State: Database>(
     let signer = context.caller;
     let (signer_pubkey, _) = state.contract_pubkey(signer);
 
-    let (account_key, bump_seed) = Pubkey::find_program_address(
-        &[
-            &[ACCOUNT_SEED_VERSION],
-            b"ContractData",
-            signer.as_bytes(),
-            seed,
-        ],
+    let (account_key, seeds) = Pubkey::find_program_address_with_seeds(
+        &spl_token_seeds(&signer, seed),
         state.program_id(),
     );
 
@@ -340,14 +325,6 @@ async fn initialize_account<State: Database>(
     if !system_program::check_id(&account.owner) {
         return Err(Error::AccountInvalidOwner(account_key, system_program::ID));
     }
-
-    let seeds: Vec<Vec<u8>> = vec![
-        vec![ACCOUNT_SEED_VERSION],
-        b"ContractData".to_vec(),
-        signer.as_bytes().to_vec(),
-        seed.to_vec(),
-        vec![bump_seed],
-    ];
 
     create_account(
         state,
@@ -380,12 +357,6 @@ async fn close_account<State: Database>(
     let signer = context.caller;
     let (signer_pubkey, bump_seed) = state.contract_pubkey(signer);
 
-    let seeds = vec![
-        vec![ACCOUNT_SEED_VERSION],
-        signer.as_bytes().to_vec(),
-        vec![bump_seed],
-    ];
-
     let close_account = spl_token::instruction::close_account(
         &spl_token::ID,
         &account,
@@ -394,7 +365,12 @@ async fn close_account<State: Database>(
         &[],
     )?;
     state
-        .queue_external_instruction(close_account, vec![seeds], 0, true)
+        .queue_external_instruction(
+            close_account,
+            vec![contract_account_seeds_bump_seed_vec(&signer, &[bump_seed])],
+            0,
+            true,
+        )
         .await?;
 
     Ok(vec![])
@@ -411,12 +387,6 @@ async fn approve<State: Database>(
     let signer = context.caller;
     let (signer_pubkey, bump_seed) = state.contract_pubkey(signer);
 
-    let seeds = vec![
-        vec![ACCOUNT_SEED_VERSION],
-        signer.as_bytes().to_vec(),
-        vec![bump_seed],
-    ];
-
     let approve = spl_token::instruction::approve(
         &spl_token::ID,
         &source,
@@ -426,7 +396,12 @@ async fn approve<State: Database>(
         amount,
     )?;
     state
-        .queue_external_instruction(approve, vec![seeds], 0, true)
+        .queue_external_instruction(
+            approve,
+            vec![contract_account_seeds_bump_seed_vec(&signer, &[bump_seed])],
+            0,
+            true,
+        )
         .await?;
 
     Ok(vec![])
@@ -441,15 +416,14 @@ async fn revoke<State: Database>(
     let signer = context.caller;
     let (signer_pubkey, bump_seed) = state.contract_pubkey(signer);
 
-    let seeds = vec![
-        vec![ACCOUNT_SEED_VERSION],
-        signer.as_bytes().to_vec(),
-        vec![bump_seed],
-    ];
-
     let revoke = spl_token::instruction::revoke(&spl_token::ID, &account, &signer_pubkey, &[])?;
     state
-        .queue_external_instruction(revoke, vec![seeds], 0, true)
+        .queue_external_instruction(
+            revoke,
+            vec![contract_account_seeds_bump_seed_vec(&signer, &[bump_seed])],
+            0,
+            true,
+        )
         .await?;
 
     Ok(vec![])
@@ -466,12 +440,6 @@ async fn transfer<State: Database>(
     let signer = context.caller;
     let (signer_pubkey, bump_seed) = state.contract_pubkey(signer);
 
-    let seeds = vec![
-        vec![ACCOUNT_SEED_VERSION],
-        signer.as_bytes().to_vec(),
-        vec![bump_seed],
-    ];
-
     let transfer = spl_token::instruction::transfer(
         &spl_token::ID,
         &source,
@@ -481,7 +449,12 @@ async fn transfer<State: Database>(
         amount,
     )?;
     state
-        .queue_external_instruction(transfer, vec![seeds], 0, true)
+        .queue_external_instruction(
+            transfer,
+            vec![contract_account_seeds_bump_seed_vec(&signer, &[bump_seed])],
+            0,
+            true,
+        )
         .await?;
 
     Ok(vec![])
@@ -496,21 +469,10 @@ async fn transfer_with_seed<State: Database>(
     target: Pubkey,
     amount: u64,
 ) -> Result<Vec<u8>> {
-    let seeds: &[&[u8]] = &[
-        &[ACCOUNT_SEED_VERSION],
-        b"AUTH",
-        context.caller.as_bytes(),
-        seed,
-    ];
-    let (signer_pubkey, signer_seed) = Pubkey::find_program_address(seeds, state.program_id());
-
-    let seeds = vec![
-        vec![ACCOUNT_SEED_VERSION],
-        b"AUTH".to_vec(),
-        context.caller.as_bytes().to_vec(),
-        seed.to_vec(),
-        vec![signer_seed],
-    ];
+    let (signer_pubkey, seeds) = Pubkey::find_program_address_with_seeds(
+        &transfer_seeds(&context.caller, seed),
+        state.program_id(),
+    );
 
     let transfer = spl_token::instruction::transfer(
         &spl_token::ID,
@@ -538,12 +500,6 @@ async fn mint_to<State: Database>(
     let signer = context.caller;
     let (signer_pubkey, bump_seed) = state.contract_pubkey(signer);
 
-    let seeds = vec![
-        vec![ACCOUNT_SEED_VERSION],
-        signer.as_bytes().to_vec(),
-        vec![bump_seed],
-    ];
-
     let mint_to = spl_token::instruction::mint_to(
         &spl_token::ID,
         &mint,
@@ -553,7 +509,12 @@ async fn mint_to<State: Database>(
         amount,
     )?;
     state
-        .queue_external_instruction(mint_to, vec![seeds], 0, true)
+        .queue_external_instruction(
+            mint_to,
+            vec![contract_account_seeds_bump_seed_vec(&signer, &[bump_seed])],
+            0,
+            true,
+        )
         .await?;
 
     Ok(vec![])
@@ -570,23 +531,15 @@ async fn burn<State: Database>(
     let signer = context.caller;
     let (signer_pubkey, bump_seed) = state.contract_pubkey(signer);
 
-    let seeds = vec![
-        vec![ACCOUNT_SEED_VERSION],
-        signer.as_bytes().to_vec(),
-        vec![bump_seed],
-    ];
-
-    #[rustfmt::skip]
-    let burn = spl_token::instruction::burn(
-        &spl_token::ID,
-        &source,
-        &mint,
-        &signer_pubkey,
-        &[],
-        amount
-    )?;
+    let burn =
+        spl_token::instruction::burn(&spl_token::ID, &source, &mint, &signer_pubkey, &[], amount)?;
     state
-        .queue_external_instruction(burn, vec![seeds], 0, true)
+        .queue_external_instruction(
+            burn,
+            vec![contract_account_seeds_bump_seed_vec(&signer, &[bump_seed])],
+            0,
+            true,
+        )
         .await?;
 
     Ok(vec![])
@@ -602,12 +555,6 @@ async fn freeze<State: Database>(
     let signer = context.caller;
     let (signer_pubkey, bump_seed) = state.contract_pubkey(signer);
 
-    let seeds = vec![
-        vec![ACCOUNT_SEED_VERSION],
-        signer.as_bytes().to_vec(),
-        vec![bump_seed],
-    ];
-
     let freeze = spl_token::instruction::freeze_account(
         &spl_token::ID,
         &target,
@@ -616,7 +563,12 @@ async fn freeze<State: Database>(
         &[],
     )?;
     state
-        .queue_external_instruction(freeze, vec![seeds], 0, true)
+        .queue_external_instruction(
+            freeze,
+            vec![contract_account_seeds_bump_seed_vec(&signer, &[bump_seed])],
+            0,
+            true,
+        )
         .await?;
 
     Ok(vec![])
@@ -632,22 +584,15 @@ async fn thaw<State: Database>(
     let signer = context.caller;
     let (signer_pubkey, bump_seed) = state.contract_pubkey(signer);
 
-    let seeds = vec![
-        vec![ACCOUNT_SEED_VERSION],
-        signer.as_bytes().to_vec(),
-        vec![bump_seed],
-    ];
-
-    #[rustfmt::skip]
-    let thaw = spl_token::instruction::thaw_account(
-        &spl_token::ID,
-        &target,
-        &mint,
-        &signer_pubkey,
-        &[]
-    )?;
+    let thaw =
+        spl_token::instruction::thaw_account(&spl_token::ID, &target, &mint, &signer_pubkey, &[])?;
     state
-        .queue_external_instruction(thaw, vec![seeds], 0, true)
+        .queue_external_instruction(
+            thaw,
+            vec![contract_account_seeds_bump_seed_vec(&signer, &[bump_seed])],
+            0,
+            true,
+        )
         .await?;
 
     Ok(vec![])
@@ -661,15 +606,8 @@ fn find_account<State: Database>(
 ) -> Result<Vec<u8>> {
     let signer = context.caller;
 
-    let (account_key, _) = Pubkey::find_program_address(
-        &[
-            &[ACCOUNT_SEED_VERSION],
-            b"ContractData",
-            signer.as_bytes(),
-            seed,
-        ],
-        state.program_id(),
-    );
+    let (account_key, _) =
+        Pubkey::find_program_address(&spl_token_seeds(&signer, seed), state.program_id());
 
     Ok(account_key.to_bytes().to_vec())
 }

@@ -1474,6 +1474,7 @@ mod tests {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn create_legacy_ether_contract(
         program_id: &Pubkey,
         rent: &Rent,
@@ -1484,7 +1485,7 @@ mod tests {
         code: &[u8],
         storage: &[[u8; 32]; STORAGE_ENTRIES_IN_CONTRACT_ACCOUNT],
     ) -> Account {
-        let data_length = if (code.len() > 0) || (generation > 0) {
+        let data_length = if (!code.is_empty()) || (generation > 0) {
             1 + LegacyEtherData::SIZE + 32 * STORAGE_ENTRIES_IN_CONTRACT_ACCOUNT + code.len()
         } else {
             1 + LegacyEtherData::SIZE
@@ -1512,7 +1513,7 @@ mod tests {
         *code_size_ptr = (code.len() as u32).to_le_bytes();
         *rw_blocked_ptr = 0u8.to_le_bytes();
 
-        if (generation > 0) || (code.len() > 0) {
+        if (generation > 0) || (!code.is_empty()) {
             let storage_offset = 1 + LegacyEtherData::SIZE;
             const STORAGE_LENGTH: usize = 32 * STORAGE_ENTRIES_IN_CONTRACT_ACCOUNT;
             let storage_ptr = &mut data[storage_offset..][..STORAGE_LENGTH];
@@ -1529,7 +1530,7 @@ mod tests {
 
         Account {
             lamports: rent.minimum_balance(data.len()),
-            data: data,
+            data,
             owner: *program_id,
             executable: false,
             rent_epoch: 0,
@@ -1633,7 +1634,7 @@ mod tests {
 
             let account = Account {
                 lamports: rent.minimum_balance(data.len()),
-                data: data,
+                data,
                 owner: *program_id,
                 executable: false,
                 rent_epoch: 0,
@@ -1652,10 +1653,10 @@ mod tests {
     impl LegacyAccount {
         pub fn account_with_pubkey(&self, program_id: &Pubkey, rent: &Rent) -> (Pubkey, Account) {
             (
-                self.address.find_solana_address(&program_id).0,
+                self.address.find_solana_address(program_id).0,
                 create_legacy_ether_account(
-                    &program_id,
-                    &rent,
+                    program_id,
+                    rent,
                     self.address,
                     self.balance,
                     self.nonce,
@@ -1678,15 +1679,15 @@ mod tests {
     impl LegacyContract {
         fn account_with_pubkey(&self, program_id: &Pubkey, rent: &Rent) -> (Pubkey, Account) {
             (
-                self.address.find_solana_address(&program_id).0,
+                self.address.find_solana_address(program_id).0,
                 create_legacy_ether_contract(
-                    &program_id,
-                    &rent,
+                    program_id,
+                    rent,
                     self.address,
                     self.balance,
                     self.nonce,
                     self.generation,
-                    &self.code,
+                    self.code,
                     &self.storage,
                 ),
             )
@@ -1720,9 +1721,7 @@ mod tests {
 
     impl ActualBalance {
         pub fn account_with_pubkey(&self, program_id: &Pubkey, rent: &Rent) -> (Pubkey, Account) {
-            let (pubkey, _) = self
-                .address
-                .find_balance_address(&program_id, self.chain_id);
+            let (pubkey, _) = self.address.find_balance_address(program_id, self.chain_id);
             let mut account_data = AccountData::new(pubkey);
             account_data.assign(*program_id).unwrap();
             account_data.expand(BalanceAccount::required_account_size());
@@ -1765,7 +1764,7 @@ mod tests {
 
     impl ActualContract {
         pub fn account_with_pubkey(&self, program_id: &Pubkey, rent: &Rent) -> (Pubkey, Account) {
-            let (pubkey, _) = self.address.find_solana_address(&program_id);
+            let (pubkey, _) = self.address.find_solana_address(program_id);
             let mut account_data = AccountData::new(pubkey);
             account_data.assign(*program_id).unwrap();
             account_data.expand(ContractAccount::required_account_size(self.code));
@@ -1826,7 +1825,7 @@ mod tests {
     const EXTRA_CHAIN_ID: u64 = 2;
     const MISSING_ADDRESS: Address = Address(hex!("7a250d5630b4cf539739df2c5dacb4c659f24800"));
 
-    const MISSING_STORAGE_INDEX: U256 = U256::new(1 * 256u128);
+    const MISSING_STORAGE_INDEX: U256 = U256::new(256u128);
     const ACTUAL_STORAGE_INDEX: U256 = U256::new(2 * 256u128);
     const LEGACY_STORAGE_INDEX: U256 = U256::new(3 * 256u128);
     const OUTDATE_STORAGE_INDEX: U256 = U256::new(4 * 256u128);
@@ -2236,13 +2235,10 @@ mod tests {
         let from = &ACTUAL_BALANCE;
         let amount = U256::new(10);
         assert_eq!(from.chain_id, LEGACY_CHAIN_ID);
-        assert_eq!(
-            storage
-                .transfer(from.address, MISSING_ADDRESS, from.chain_id, amount)
-                .await
-                .is_ok(),
-            true
-        );
+        assert!(storage
+            .transfer(from.address, MISSING_ADDRESS, from.chain_id, amount)
+            .await
+            .is_ok());
 
         storage.verify_used_accounts(&[
             (
@@ -2278,13 +2274,10 @@ mod tests {
         let from = &ACTUAL_BALANCE2;
         let amount = U256::new(11);
         assert_eq!(from.chain_id, EXTRA_CHAIN_ID);
-        assert_eq!(
-            storage
-                .transfer(from.address, MISSING_ADDRESS, from.chain_id, amount)
-                .await
-                .is_ok(),
-            true
-        );
+        assert!(storage
+            .transfer(from.address, MISSING_ADDRESS, from.chain_id, amount)
+            .await
+            .is_ok());
 
         storage.verify_used_accounts(&[
             (
@@ -2320,13 +2313,10 @@ mod tests {
         let to = &LEGACY_ACCOUNT;
         let amount = U256::new(10);
         assert_eq!(from.chain_id, LEGACY_CHAIN_ID);
-        assert_eq!(
-            storage
-                .transfer(from.address, to.address, from.chain_id, amount)
-                .await
-                .is_ok(),
-            true
-        );
+        assert!(storage
+            .transfer(from.address, to.address, from.chain_id, amount)
+            .await
+            .is_ok());
 
         storage.verify_used_accounts(&[
             (
@@ -2481,13 +2471,10 @@ mod tests {
         let mut storage = fixture.build_account_storage().await;
 
         let code = hex!("14643165").to_vec();
-        assert_eq!(
-            storage
-                .set_code(MISSING_ADDRESS, LEGACY_CHAIN_ID, code.clone())
-                .await
-                .is_ok(),
-            true
-        );
+        assert!(storage
+            .set_code(MISSING_ADDRESS, LEGACY_CHAIN_ID, code.clone())
+            .await
+            .is_ok());
         storage.verify_used_accounts(&[(fixture.contract_pubkey(MISSING_ADDRESS), true, false)]);
         storage.verify_upgrade_rent(0, 0);
         storage.verify_regular_rent(fixture.contract_rent(&code), 0);
@@ -2500,13 +2487,10 @@ mod tests {
 
         let code = hex!("14643165").to_vec();
         let acc = &ACTUAL_BALANCE;
-        assert_eq!(
-            storage
-                .set_code(acc.address, LEGACY_CHAIN_ID, code.clone())
-                .await
-                .is_ok(),
-            true
-        );
+        assert!(storage
+            .set_code(acc.address, LEGACY_CHAIN_ID, code.clone())
+            .await
+            .is_ok());
         storage.verify_used_accounts(&[(fixture.contract_pubkey(acc.address), true, false)]);
         storage.verify_upgrade_rent(0, 0);
         storage.verify_regular_rent(fixture.contract_rent(&code), 0);
@@ -2540,13 +2524,10 @@ mod tests {
 
         let code = hex!("37455846").to_vec();
         let contract = &LEGACY_ACCOUNT;
-        assert_eq!(
-            storage
-                .set_code(contract.address, LEGACY_CHAIN_ID, code.clone())
-                .await
-                .is_ok(),
-            true
-        );
+        assert!(storage
+            .set_code(contract.address, LEGACY_CHAIN_ID, code.clone())
+            .await
+            .is_ok());
         storage.verify_used_accounts(&[
             (
                 fixture.balance_pubkey(contract.address, LEGACY_CHAIN_ID),
@@ -2598,13 +2579,10 @@ mod tests {
         let code = hex!("13412971").to_vec();
         let contract = &ACTUAL_SUICIDE;
         // TODO: Should we deploy new contract by the previous address?
-        assert_eq!(
-            storage
-                .set_code(contract.address, LEGACY_CHAIN_ID, code.clone())
-                .await
-                .is_ok(),
-            true,
-        );
+        assert!(storage
+            .set_code(contract.address, LEGACY_CHAIN_ID, code.clone())
+            .await
+            .is_ok(),);
         storage.verify_used_accounts(&[(fixture.contract_pubkey(contract.address), true, false)]);
         storage.verify_upgrade_rent(0, 0);
         storage.verify_regular_rent(
@@ -2621,13 +2599,10 @@ mod tests {
         let code = hex!("13412971").to_vec();
         let contract = &LEGACY_SUICIDE;
         // TODO: Should we deploy new contract by the previous address?
-        assert_eq!(
-            storage
-                .set_code(contract.address, LEGACY_CHAIN_ID, code.clone())
-                .await
-                .is_ok(),
-            true,
-        );
+        assert!(storage
+            .set_code(contract.address, LEGACY_CHAIN_ID, code.clone())
+            .await
+            .is_ok(),);
         storage.verify_used_accounts(&[
             (
                 fixture.balance_pubkey(contract.address, LEGACY_CHAIN_ID),
@@ -2637,12 +2612,12 @@ mod tests {
             (fixture.contract_pubkey(contract.address), true, true),
         ]);
         storage.verify_upgrade_rent(
-            fixture.balance_rent() + fixture.contract_rent(&contract.code),
+            fixture.balance_rent() + fixture.contract_rent(contract.code),
             fixture.legacy_rent(Some(contract.code.len())),
         );
         storage.verify_regular_rent(
             fixture.contract_rent(&code),
-            fixture.contract_rent(&contract.code),
+            fixture.contract_rent(contract.code),
         );
     }
 
@@ -2724,17 +2699,10 @@ mod tests {
         storage.verify_regular_rent(0, 0);
 
         let new_value = [0x01u8; 32];
-        assert_eq!(
-            storage
-                .set_storage(
-                    contract.address,
-                    ACTUAL_STORAGE_INDEX + 1,
-                    new_value.clone()
-                )
-                .await
-                .is_ok(),
-            true
-        );
+        assert!(storage
+            .set_storage(contract.address, ACTUAL_STORAGE_INDEX + 1, new_value)
+            .await
+            .is_ok());
         assert_eq!(
             storage
                 .storage(contract.address, ACTUAL_STORAGE_INDEX + 1)
@@ -2757,13 +2725,10 @@ mod tests {
 
         let contract = &ACTUAL_CONTRACT;
         let new_value = [0x02u8; 32];
-        assert_eq!(
-            storage
-                .set_storage(contract.address, MISSING_STORAGE_INDEX, new_value.clone())
-                .await
-                .is_ok(),
-            true
-        );
+        assert!(storage
+            .set_storage(contract.address, MISSING_STORAGE_INDEX, new_value)
+            .await
+            .is_ok());
         assert_eq!(
             storage
                 .storage(contract.address, MISSING_STORAGE_INDEX)
@@ -2787,13 +2752,10 @@ mod tests {
         let contract = &ACTUAL_CONTRACT;
         let new_value = [0x03u8; 32];
         let index = U256::new(0);
-        assert_eq!(
-            storage
-                .set_storage(contract.address, index, new_value.clone())
-                .await
-                .is_ok(),
-            true
-        );
+        assert!(storage
+            .set_storage(contract.address, index, new_value)
+            .await
+            .is_ok());
         assert_eq!(storage.storage(contract.address, index).await, new_value);
         storage.verify_used_accounts(&[(fixture.contract_pubkey(contract.address), true, false)]);
         storage.verify_upgrade_rent(0, 0);

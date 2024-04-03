@@ -5,14 +5,13 @@ use crate::{
     account_storage::KeysCache,
     config::DEFAULT_CHAIN_ID,
     error::{Error, Result},
+    pda_seeds::balance_account_seeds_bump_seed,
     types::Address,
 };
 use ethnum::U256;
 use solana_program::{account_info::AccountInfo, pubkey::Pubkey, rent::Rent, system_program};
 
-use super::{
-    AccountHeader, AccountsDB, ACCOUNT_PREFIX_LEN, ACCOUNT_SEED_VERSION, TAG_ACCOUNT_BALANCE,
-};
+use super::{AccountHeader, AccountsDB, ACCOUNT_PREFIX_LEN, TAG_ACCOUNT_BALANCE};
 
 #[repr(C, packed)]
 pub struct Header {
@@ -82,14 +81,6 @@ impl<'a> BalanceAccount<'a> {
             }
         }
 
-        // Create a new account
-        let program_seeds: &[&[u8]] = &[
-            &[ACCOUNT_SEED_VERSION],
-            address.as_bytes(),
-            &U256::from(chain_id).to_be_bytes(),
-            &[bump_seed],
-        ];
-
         let system = accounts.system();
         let operator = accounts.operator();
 
@@ -97,7 +88,11 @@ impl<'a> BalanceAccount<'a> {
             &crate::ID,
             operator,
             &account,
-            program_seeds,
+            &balance_account_seeds_bump_seed(
+                &address,
+                &U256::from(chain_id).to_be_bytes(),
+                &[bump_seed],
+            ),
             ACCOUNT_PREFIX_LEN + size_of::<Header>(),
             rent,
         )?;

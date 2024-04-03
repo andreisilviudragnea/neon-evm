@@ -8,11 +8,10 @@ use solana_program::system_program;
 
 use crate::account::{AllocateResult, BalanceAccount, ContractAccount, StorageCell};
 use crate::account_storage::ProgramAccountStorage;
-use crate::config::{
-    ACCOUNT_SEED_VERSION, PAYMENT_TO_TREASURE, STORAGE_ENTRIES_IN_CONTRACT_ACCOUNT,
-};
+use crate::config::{PAYMENT_TO_TREASURE, STORAGE_ENTRIES_IN_CONTRACT_ACCOUNT};
 use crate::error::Result;
 use crate::executor::Action;
+use crate::pda_seeds::contract_account_seeds_bump_seed;
 use crate::types::Address;
 
 impl<'a> ProgramAccountStorage<'a> {
@@ -212,11 +211,15 @@ impl<'a> ProgramAccountStorage<'a> {
 
                 if system_program::check_id(account.owner) {
                     let (_, bump) = self.keys.contract_with_bump_seed(&crate::ID, address);
-                    let sign: &[&[u8]] = &[&[ACCOUNT_SEED_VERSION], address.as_bytes(), &[bump]];
 
                     let len = values.len();
-                    let mut storage =
-                        StorageCell::create(cell_address, len, &self.accounts, sign, &self.rent)?;
+                    let mut storage = StorageCell::create(
+                        cell_address,
+                        len,
+                        &self.accounts,
+                        &contract_account_seeds_bump_seed(&address, &[bump]),
+                        &self.rent,
+                    )?;
                     let mut cells = storage.cells_mut();
 
                     assert_eq!(cells.len(), len);
