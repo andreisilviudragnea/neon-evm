@@ -7,7 +7,7 @@ use spl_associated_token_account::get_associated_token_address;
 use crate::account::{program, token, AccountsDB, BalanceAccount, Operator};
 use crate::config::{CHAIN_ID_LIST, DEFAULT_CHAIN_ID};
 use crate::error::{Error, Result};
-use crate::pda_seeds::balance_account_seeds_bump_seed;
+use crate::pda_seeds::balance_account_seeds;
 use crate::pda_seeds::AUTHORITY_SEEDS;
 use crate::types::Address;
 
@@ -134,7 +134,7 @@ fn execute(program_id: &Pubkey, accounts: Accounts, address: Address, chain_id: 
     invoke_signed(
         &instruction,
         account_infos,
-        &[&balance_account_seeds_bump_seed(
+        &[&balance_account_seeds(
             &address,
             &U256::from(chain_id).to_be_bytes(),
             &[bump_seed],

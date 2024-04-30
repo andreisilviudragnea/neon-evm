@@ -6,12 +6,7 @@ pub const AUTHORITY_SEEDS: &[&[u8]] = &[b"Deposit"];
 const ACCOUNT_SEED_VERSION_SLICE: &[u8] = &[crate::config::ACCOUNT_SEED_VERSION];
 
 #[must_use]
-pub fn balance_account_seeds<'a>(address: &'a Address, chain_id: &'a [u8]) -> [&'a [u8]; 3] {
-    [ACCOUNT_SEED_VERSION_SLICE, address.as_bytes(), chain_id]
-}
-
-#[must_use]
-pub fn balance_account_seeds_bump_seed<'a>(
+pub fn balance_account_seeds<'a>(
     address: &'a Address,
     chain_id: &'a [u8],
     bump_seed: &'a [u8],

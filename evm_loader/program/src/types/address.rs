@@ -61,7 +61,7 @@ impl Address {
     #[must_use]
     pub fn find_balance_address(&self, program_id: &Pubkey, chain_id: u64) -> (Pubkey, u8) {
         Pubkey::find_program_address(
-            &balance_account_seeds(self, &U256::from(chain_id).to_be_bytes()),
+            &balance_account_seeds(self, &U256::from(chain_id).to_be_bytes(), &[]),
             program_id,
         )
     }

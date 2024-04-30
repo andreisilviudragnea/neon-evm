@@ -1,11 +1,11 @@
 use std::mem::size_of;
 
+use crate::pda_seeds::balance_account_seeds;
 use crate::{
     account::{TAG_ACCOUNT_CONTRACT, TAG_EMPTY},
     account_storage::KeysCache,
     config::DEFAULT_CHAIN_ID,
     error::{Error, Result},
-    pda_seeds::balance_account_seeds_bump_seed,
     types::Address,
 };
 use ethnum::U256;
@@ -88,11 +88,7 @@ impl<'a> BalanceAccount<'a> {
             &crate::ID,
             operator,
             &account,
-            &balance_account_seeds_bump_seed(
-                &address,
-                &U256::from(chain_id).to_be_bytes(),
-                &[bump_seed],
-            ),
+            &balance_account_seeds(&address, &U256::from(chain_id).to_be_bytes(), &[bump_seed]),
             ACCOUNT_PREFIX_LEN + size_of::<Header>(),
             rent,
         )?;
