@@ -1,5 +1,5 @@
 use crate::account::{program::System, MainTreasury, Treasury};
-use crate::pda_seeds::treasury_seeds;
+use crate::pda_seeds::with_treasury_seeds;
 use arrayref::array_ref;
 use solana_program::{
     account_info::AccountInfo, entrypoint::ProgramResult, program::invoke_signed, pubkey::Pubkey,
@@ -26,14 +26,13 @@ pub fn process<'a>(
         .saturating_sub(minimal_balance_for_rent_exempt);
 
     if available_lamports > 0 {
-        invoke_signed(
-            &system_instruction::transfer(treasury.key, main_treasury.key, available_lamports),
-            &[treasury.clone(), main_treasury.clone(), system.clone()],
-            &[&treasury_seeds(
-                &treasury_index.to_le_bytes(),
-                &[treasury.get_bump_seed()],
-            )],
-        )?;
+        with_treasury_seeds(treasury_index, &[treasury.get_bump_seed()], |seeds| {
+            invoke_signed(
+                &system_instruction::transfer(treasury.key, main_treasury.key, available_lamports),
+                &[treasury.clone(), main_treasury.clone(), system.clone()],
+                &[seeds],
+            )
+        })?;
     };
 
     Ok(())
