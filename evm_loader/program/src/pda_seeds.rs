@@ -62,12 +62,7 @@ pub fn treasury_seeds<'a>(index: &'a [u8], bump_seed: &'a [u8]) -> [&'a [u8]; 3]
 }
 
 #[must_use]
-pub fn main_treasury_seeds() -> [&'static [u8]; 1] {
-    [crate::config::TREASURY_POOL_SEED.as_bytes()]
-}
-
-#[must_use]
-pub fn main_treasury_seeds_bump_seed(bump_seed: &[u8]) -> [&[u8]; 2] {
+pub fn main_treasury_seeds(bump_seed: &[u8]) -> [&[u8]; 2] {
     [crate::config::TREASURY_POOL_SEED.as_bytes(), bump_seed]
 }
 

@@ -1,4 +1,4 @@
-use crate::pda_seeds::main_treasury_seeds_bump_seed;
+use crate::pda_seeds::main_treasury_seeds;
 use crate::{
     account::{program::System, program::Token, MainTreasury, Operator},
     error::{Error, Result},
@@ -119,7 +119,7 @@ pub fn process<'a>(
         &spl_token::id(),
         &accounts.payer,
         accounts.main_treasury,
-        &main_treasury_seeds_bump_seed(&[bump_seed]),
+        &main_treasury_seeds(&[bump_seed]),
         spl_token::state::Account::LEN,
         &Rent::get()?,
     )?;

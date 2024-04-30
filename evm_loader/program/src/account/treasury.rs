@@ -71,7 +71,7 @@ impl<'a> MainTreasury<'a> {
 
     #[must_use]
     pub fn address(program_id: &Pubkey) -> (Pubkey, u8) {
-        Pubkey::find_program_address(&main_treasury_seeds(), program_id)
+        Pubkey::find_program_address(&main_treasury_seeds(&[]), program_id)
     }
 
     #[must_use]
