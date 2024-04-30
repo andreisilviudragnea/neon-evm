@@ -1,7 +1,6 @@
 use crate::error::Error;
-use crate::pda_seeds::balance_account_seeds;
 use crate::pda_seeds::contract_account_seeds;
-use ethnum::U256;
+use crate::pda_seeds::with_balance_account_seeds;
 use hex::FromHex;
 use serde::{Deserialize, Serialize};
 use solana_program::pubkey::Pubkey;
@@ -60,10 +59,9 @@ impl Address {
 
     #[must_use]
     pub fn find_balance_address(&self, program_id: &Pubkey, chain_id: u64) -> (Pubkey, u8) {
-        Pubkey::find_program_address(
-            &balance_account_seeds(self, &U256::from(chain_id).to_be_bytes(), &[]),
-            program_id,
-        )
+        with_balance_account_seeds(self, chain_id, &[], |seeds| {
+            Pubkey::find_program_address(seeds, program_id)
+        })
     }
 }
 

@@ -1,6 +1,6 @@
 use std::mem::size_of;
 
-use crate::pda_seeds::balance_account_seeds;
+use crate::pda_seeds::with_balance_account_seeds;
 use crate::{
     account::{TAG_ACCOUNT_CONTRACT, TAG_EMPTY},
     account_storage::KeysCache,
@@ -84,14 +84,16 @@ impl<'a> BalanceAccount<'a> {
         let system = accounts.system();
         let operator = accounts.operator();
 
-        system.create_pda_account(
-            &crate::ID,
-            operator,
-            &account,
-            &balance_account_seeds(&address, &U256::from(chain_id).to_be_bytes(), &[bump_seed]),
-            ACCOUNT_PREFIX_LEN + size_of::<Header>(),
-            rent,
-        )?;
+        with_balance_account_seeds(&address, chain_id, &[bump_seed], |seeds| {
+            system.create_pda_account(
+                &crate::ID,
+                operator,
+                &account,
+                seeds,
+                ACCOUNT_PREFIX_LEN + size_of::<Header>(),
+                rent,
+            )
+        })?;
 
         Self::initialize(account, &crate::ID, address, chain_id)
     }

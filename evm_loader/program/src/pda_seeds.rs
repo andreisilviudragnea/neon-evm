@@ -1,4 +1,5 @@
 use crate::types::Address;
+use ethnum::U256;
 use solana_program::pubkey::Pubkey;
 
 pub const AUTHORITY_SEEDS: &[&[u8]] = &[b"Deposit"];
@@ -6,17 +7,18 @@ pub const AUTHORITY_SEEDS: &[&[u8]] = &[b"Deposit"];
 const ACCOUNT_SEED_VERSION_SLICE: &[u8] = &[crate::config::ACCOUNT_SEED_VERSION];
 
 #[must_use]
-pub fn balance_account_seeds<'a>(
-    address: &'a Address,
-    chain_id: &'a [u8],
-    bump_seed: &'a [u8],
-) -> [&'a [u8]; 4] {
-    [
+pub fn with_balance_account_seeds<R>(
+    address: &Address,
+    chain_id: u64,
+    bump_seed: &[u8],
+    f: impl Fn(&[&[u8]]) -> R,
+) -> R {
+    f(&[
         ACCOUNT_SEED_VERSION_SLICE,
         address.as_bytes(),
-        chain_id,
+        &U256::from(chain_id).to_be_bytes(),
         bump_seed,
-    ]
+    ])
 }
 
 #[must_use]

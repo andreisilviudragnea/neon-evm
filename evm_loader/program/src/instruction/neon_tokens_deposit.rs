@@ -7,7 +7,7 @@ use spl_associated_token_account::get_associated_token_address;
 use crate::account::{program, token, AccountsDB, BalanceAccount, Operator};
 use crate::config::{CHAIN_ID_LIST, DEFAULT_CHAIN_ID};
 use crate::error::{Error, Result};
-use crate::pda_seeds::balance_account_seeds;
+use crate::pda_seeds::with_balance_account_seeds;
 use crate::pda_seeds::AUTHORITY_SEEDS;
 use crate::types::Address;
 
@@ -131,15 +131,9 @@ fn execute(program_id: &Pubkey, accounts: Accounts, address: Address, chain_id: 
         accounts.token_program.clone(),
     ];
 
-    invoke_signed(
-        &instruction,
-        account_infos,
-        &[&balance_account_seeds(
-            &address,
-            &U256::from(chain_id).to_be_bytes(),
-            &[bump_seed],
-        )],
-    )?;
+    with_balance_account_seeds(&address, chain_id, &[bump_seed], |seeds| {
+        invoke_signed(&instruction, account_infos, &[seeds])
+    })?;
 
     let token_decimals = accounts.mint.decimals;
     assert!(token_decimals <= 18);
