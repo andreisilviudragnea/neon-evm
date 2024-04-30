@@ -41,11 +41,11 @@ pub fn contract_account_seeds_bump_seed<'a>(
 pub fn contract_account_seeds_bump_seed_vec<'a>(
     address: &'a Address,
     bump_seed: &'a [u8],
-) -> Vec<Vec<u8>> {
-    contract_account_seeds_bump_seed(address, bump_seed)
+) -> Vec<Vec<Vec<u8>>> {
+    vec![contract_account_seeds_bump_seed(address, bump_seed)
         .into_iter()
         .map(<[u8]>::to_vec)
-        .collect()
+        .collect()]
 }
 
 #[must_use]
