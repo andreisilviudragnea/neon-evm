@@ -1,5 +1,5 @@
 #![allow(clippy::unnecessary_wraps)]
-use crate::pda_seeds::contract_account_seeds_bump_seed_vec;
+use crate::pda_seeds::contract_account_seeds_vec;
 use std::convert::{Into, TryInto};
 
 use ethnum::U256;
@@ -223,7 +223,7 @@ async fn create_metadata<State: Database>(
     state
         .queue_external_instruction(
             instruction,
-            contract_account_seeds_bump_seed_vec(&signer, bump_seed),
+            contract_account_seeds_vec(&signer, bump_seed),
             fee,
             true,
         )
@@ -264,7 +264,7 @@ async fn create_master_edition<State: Database>(
     state
         .queue_external_instruction(
             instruction,
-            contract_account_seeds_bump_seed_vec(&signer, bump_seed),
+            contract_account_seeds_vec(&signer, bump_seed),
             fee,
             true,
         )

@@ -8,7 +8,7 @@ use solana_program::{
 };
 
 use super::create_account;
-use crate::pda_seeds::contract_account_seeds_bump_seed_vec;
+use crate::pda_seeds::contract_account_seeds_vec;
 use crate::pda_seeds::spl_token_seeds;
 use crate::pda_seeds::PubkeyExt;
 use crate::{
@@ -367,7 +367,7 @@ async fn close_account<State: Database>(
     state
         .queue_external_instruction(
             close_account,
-            contract_account_seeds_bump_seed_vec(&signer, bump_seed),
+            contract_account_seeds_vec(&signer, bump_seed),
             0,
             true,
         )
@@ -398,7 +398,7 @@ async fn approve<State: Database>(
     state
         .queue_external_instruction(
             approve,
-            contract_account_seeds_bump_seed_vec(&signer, bump_seed),
+            contract_account_seeds_vec(&signer, bump_seed),
             0,
             true,
         )
@@ -420,7 +420,7 @@ async fn revoke<State: Database>(
     state
         .queue_external_instruction(
             revoke,
-            contract_account_seeds_bump_seed_vec(&signer, bump_seed),
+            contract_account_seeds_vec(&signer, bump_seed),
             0,
             true,
         )
@@ -451,7 +451,7 @@ async fn transfer<State: Database>(
     state
         .queue_external_instruction(
             transfer,
-            contract_account_seeds_bump_seed_vec(&signer, bump_seed),
+            contract_account_seeds_vec(&signer, bump_seed),
             0,
             true,
         )
@@ -511,7 +511,7 @@ async fn mint_to<State: Database>(
     state
         .queue_external_instruction(
             mint_to,
-            contract_account_seeds_bump_seed_vec(&signer, bump_seed),
+            contract_account_seeds_vec(&signer, bump_seed),
             0,
             true,
         )
@@ -536,7 +536,7 @@ async fn burn<State: Database>(
     state
         .queue_external_instruction(
             burn,
-            contract_account_seeds_bump_seed_vec(&signer, bump_seed),
+            contract_account_seeds_vec(&signer, bump_seed),
             0,
             true,
         )
@@ -565,7 +565,7 @@ async fn freeze<State: Database>(
     state
         .queue_external_instruction(
             freeze,
-            contract_account_seeds_bump_seed_vec(&signer, bump_seed),
+            contract_account_seeds_vec(&signer, bump_seed),
             0,
             true,
         )
@@ -589,7 +589,7 @@ async fn thaw<State: Database>(
     state
         .queue_external_instruction(
             thaw,
-            contract_account_seeds_bump_seed_vec(&signer, bump_seed),
+            contract_account_seeds_vec(&signer, bump_seed),
             0,
             true,
         )
