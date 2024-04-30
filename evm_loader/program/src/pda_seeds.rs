@@ -20,21 +20,13 @@ pub fn balance_account_seeds<'a>(
 }
 
 #[must_use]
-pub fn contract_account_seeds(address: &Address) -> [&[u8]; 2] {
-    [ACCOUNT_SEED_VERSION_SLICE, address.as_bytes()]
-}
-
-#[must_use]
-pub fn contract_account_seeds_bump_seed<'a>(
-    address: &'a Address,
-    bump_seed: &'a [u8],
-) -> [&'a [u8]; 3] {
+pub fn contract_account_seeds<'a>(address: &'a Address, bump_seed: &'a [u8]) -> [&'a [u8]; 3] {
     [ACCOUNT_SEED_VERSION_SLICE, address.as_bytes(), bump_seed]
 }
 
 #[must_use]
 pub fn contract_account_seeds_bump_seed_vec(address: &Address, bump_seed: u8) -> Vec<Vec<Vec<u8>>> {
-    vec![contract_account_seeds_bump_seed(address, &[bump_seed])
+    vec![contract_account_seeds(address, &[bump_seed])
         .into_iter()
         .map(<[u8]>::to_vec)
         .collect()]
@@ -132,7 +124,7 @@ mod tests {
         let usdt_address = Address::from_hex("0x5f0155d08eF4aaE2B500AefB64A3419dA8bB611a").unwrap();
 
         let (usdt_pubkey, _) =
-            Pubkey::find_program_address(&contract_account_seeds(&usdt_address), &neon_evm);
+            Pubkey::find_program_address(&contract_account_seeds(&usdt_address, &[]), &neon_evm);
 
         assert_eq!(
             usdt_pubkey.to_string(),

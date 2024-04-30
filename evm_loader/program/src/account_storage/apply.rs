@@ -11,7 +11,7 @@ use crate::account_storage::ProgramAccountStorage;
 use crate::config::{PAYMENT_TO_TREASURE, STORAGE_ENTRIES_IN_CONTRACT_ACCOUNT};
 use crate::error::Result;
 use crate::executor::Action;
-use crate::pda_seeds::contract_account_seeds_bump_seed;
+use crate::pda_seeds::contract_account_seeds;
 use crate::types::Address;
 
 impl<'a> ProgramAccountStorage<'a> {
@@ -217,7 +217,7 @@ impl<'a> ProgramAccountStorage<'a> {
                         cell_address,
                         len,
                         &self.accounts,
-                        &contract_account_seeds_bump_seed(&address, &[bump]),
+                        &contract_account_seeds(&address, &[bump]),
                         &self.rent,
                     )?;
                     let mut cells = storage.cells_mut();

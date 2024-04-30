@@ -1,4 +1,4 @@
-use crate::pda_seeds::contract_account_seeds_bump_seed;
+use crate::pda_seeds::contract_account_seeds;
 use crate::{
     account::TAG_EMPTY,
     account_storage::KeysCache,
@@ -107,7 +107,7 @@ impl<'a> ContractAccount<'a> {
                 &crate::ID,
                 operator,
                 info,
-                &contract_account_seeds_bump_seed(&address, &[bump_seed]),
+                &contract_account_seeds(&address, &[bump_seed]),
                 space,
                 rent,
             )?;

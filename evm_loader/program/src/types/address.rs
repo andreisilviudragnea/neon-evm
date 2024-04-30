@@ -55,7 +55,7 @@ impl Address {
 
     #[must_use]
     pub fn find_solana_address(&self, program_id: &Pubkey) -> (Pubkey, u8) {
-        Pubkey::find_program_address(&contract_account_seeds(self), program_id)
+        Pubkey::find_program_address(&contract_account_seeds(self, &[]), program_id)
     }
 
     #[must_use]
