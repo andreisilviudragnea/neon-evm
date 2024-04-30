@@ -1,5 +1,5 @@
 use crate::account::{program::System, MainTreasury, Treasury};
-use crate::pda_seeds::treasury_seeds_bump_seed;
+use crate::pda_seeds::treasury_seeds;
 use arrayref::array_ref;
 use solana_program::{
     account_info::AccountInfo, entrypoint::ProgramResult, program::invoke_signed, pubkey::Pubkey,
@@ -29,7 +29,7 @@ pub fn process<'a>(
         invoke_signed(
             &system_instruction::transfer(treasury.key, main_treasury.key, available_lamports),
             &[treasury.clone(), main_treasury.clone(), system.clone()],
-            &[&treasury_seeds_bump_seed(
+            &[&treasury_seeds(
                 &treasury_index.to_le_bytes(),
                 &[treasury.get_bump_seed()],
             )],

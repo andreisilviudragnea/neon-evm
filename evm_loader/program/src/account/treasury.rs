@@ -30,7 +30,7 @@ impl<'a> Treasury<'a> {
 
     #[must_use]
     pub fn address(program_id: &Pubkey, index: u32) -> (Pubkey, u8) {
-        Pubkey::find_program_address(&treasury_seeds(&index.to_le_bytes()), program_id)
+        Pubkey::find_program_address(&treasury_seeds(&index.to_le_bytes(), &[]), program_id)
     }
 
     #[must_use]

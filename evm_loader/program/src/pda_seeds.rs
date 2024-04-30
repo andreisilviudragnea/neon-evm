@@ -53,12 +53,7 @@ pub fn transfer_seeds<'a>(address: &'a Address, seed: &'a [u8]) -> [&'a [u8]; 4]
 }
 
 #[must_use]
-pub fn treasury_seeds(index: &[u8]) -> [&[u8]; 2] {
-    [crate::config::TREASURY_POOL_SEED.as_bytes(), index]
-}
-
-#[must_use]
-pub fn treasury_seeds_bump_seed<'a>(index: &'a [u8], bump_seed: &'a [u8]) -> [&'a [u8]; 3] {
+pub fn treasury_seeds<'a>(index: &'a [u8], bump_seed: &'a [u8]) -> [&'a [u8]; 3] {
     [
         crate::config::TREASURY_POOL_SEED.as_bytes(),
         index,
